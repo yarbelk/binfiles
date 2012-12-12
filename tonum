@@ -1,0 +1,8 @@
+#!/usr/bin/env python
+from path import path
+
+cwd = path('.').abspath()
+
+for file in cwd.listdir():
+    print file.name + ' -> ' + file.name.split()[0] + '.jpg'
+    file.move(file.name.split()[0] + '.jpg')
