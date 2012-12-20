@@ -1,18 +1,31 @@
 #!/usr/bin/env python
 from path import path
 import re
+import collections
 
 cwd = path('.').abspath()
 
-files = cwd.listdir().sort()
+files = cwd.files()
 r_rename = re.compile(ur"(?P<num>^\d+).*$")
-temp = "{orig} -> {num}{ext}"
+msg_temp = u"{orig} -> {num}{ext}"
+file_temp =u"{num}{ext}"
+new_files = {}
 
 
 for a_file in files:
-    search = r_rename.search(a_file)
+    search = r_rename.search(unicode(a_file.name))
     if search:
-        print temp.format(orig=a_file, ext=a_file.ext, **search.groupdict)
-    else:
-        print a_file.name + ' -> ' + a_file.name
-    a_file.move(u"{num}{ext}".format(ext=a_file.ext, **search.groupdict))
+        new_files[a_file] = file_temp.format(ext=a_file.ext,  **search.groupdict())
+
+new_name_counts = collections.Counter(new_files.items())
+duplicates = [x for x in new_name_counts if new_name_counts[x] != 1]
+if len(set(new_name_counts.items())) != len(new_name_counts):
+    print u"Conflicting file names:"
+    for a_file in new_files:
+        if new_files[a_file] in duplicates:
+            print u"old_file: {0} -> duplicate {1}".format(a_file, new_files[a_file])
+else:
+    print u"renaming numbered files"
+    for a_file in new_files:
+        print u"{0} -> {1}".format(a_file, new_files[a_file])
+        a_file.move(new_files[a_file])
