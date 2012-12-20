@@ -1,0 +1,5 @@
+#!/bin/bash
+export PROJECT=`python -c "import os; print os.path.basename(os.getcwd())"`
+export PYTHONPATH="/home/aesir/dev/"
+export DJANGO_SETTINGS_MODULE=$PROJECT.settings 
+vim $@

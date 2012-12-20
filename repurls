@@ -1,0 +1,122 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import re
+import os
+from optparse import OptionParser
+import codecs
+
+CURRENT_PATH = os.path.abspath('.')
+template_files = []
+load_tag = "{% load url from future %}"
+file_formats = ['.html', '.txt']
+version = '0.1'
+
+re_flags = re.I | re.X | re.U
+
+r_has_url = re.compile(ur"{% \s* url \s+ ",re_flags)
+
+# view lookup regex
+r_view_reverse_finder = re.compile(ur"""
+    (?P<before> {% \s*
+        url \s+ ')
+        (?P<mod>\w+)\.(?P<view_type>views|views_dashboard)\.(?P<view_name>\w+)'
+        """, re_flags)
+
+special_views = {
+        'a_photo':'photo',
+        'a_photo_link':'photo_link',
+        'all_photos':'photo_list',
+        'terms_and_conditions':'tnc'
+        }
+
+mangled_tnc = [
+        'photo_comps',
+        'vouchers',
+        'giveaways',
+        ]
+
+special_names = {
+        'sgp':'mpsite:sgp',
+        'about':'mpsite:about',
+        'terms_of_service':'mpsite:terms_of_service',
+        'privacy_policy':'mpsite:privacy_policy',
+        'terms_and_conditions':'mpsite:terms_and_conditions',
+        'social_media':'mpsite:social_media',
+        }
+
+parser = OptionParser("usage: %prog [options]", version='%prog ' + version)
+parser.add_option(
+    "-D", "--dry-run",
+    dest="dryrun",
+    action="store_true",
+    default=False,
+    help='Only shows changes to be made without actually modifying files'
+)
+(options, args) = parser.parse_args()
+
+
+def make_me_magic():
+    """main function
+
+    finds urls, determins if it is namespaced or not, and looks up if it has special names.
+    and then updates stuff.
+
+    magically
+    """
+
+    # Находим файлы с подходящим расширением.
+    os.path.walk(CURRENT_PATH, search_template_files, template_files)
+
+    for file_path in template_files:
+        with codecs.open(file_path, 'r+','utf-8') as t_file:
+            file_content = t_file.read()
+
+            # Проверяем наличие в файле старых тегов или
+            # отсутствие «load» тега.
+            if has_url_tag(file_content):
+                print file_path
+
+                file_content = process_url_tag(file_content)
+
+                if not getattr(options, 'dryrun', True):
+                    t_file.seek(0)
+                    t_file.write(file_content)
+                    message("File updated")
+
+                message('\n')
+
+def search_template_files(template_files, dirname, fnames):
+    for file_name in fnames:
+        if os.path.splitext(file_name)[1] in file_formats:
+            file_path = os.path.join(dirname, file_name)
+            template_files.append(file_path)
+
+def url_replacer(match):
+    matches = match.groupdict()
+    namespace = matches['mod']
+    if namespace in ['photo_comps', 'fan_gates', 'video_comps', 'mpsite', 'dashboard', 'giveaways', 'vouchers', 'caption_comps']:
+        if matches['view_type'] == 'views_dashboard':
+            namespace += '_dashboard'
+        view_name = matches['view_name']
+        if view_name in special_views:
+            if view_name != 'terms_and_conditions' or (view_name == 'terms_and_conditions' and matches['mod'] in mangled_tnc):
+                view_name = special_views[view_name]
+        repl = u"{before}{namespace}:{name}'".format(before=matches['before'], namespace=namespace, name=view_name)
+        message(u"replaced: {0} -> {1}".format(match.group(0), repl))
+        return repl
+    else:
+        message(u"didn't replace {0} - not in user apps".format(match.group(0)))
+        return match.group(0)
+
+def has_url_tag(html):
+    return r_has_url.search(html)
+
+def process_url_tag(html):
+    return r_view_reverse_finder.sub(url_replacer, html)
+
+def message(txt):
+    print txt
+
+if __name__ == '__main__':
+    make_me_magic()
