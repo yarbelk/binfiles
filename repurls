@@ -19,8 +19,8 @@ r_has_url = re.compile(ur"{% \s* url \s+ ",re_flags)
 # view lookup regex
 r_view_reverse_finder = re.compile(ur"""
     (?P<before> {% \s*
-        url \s+ ')
-        (?P<mod>\w+)\.(?P<view_type>views|views_dashboard)\.(?P<view_name>\w+)'
+        url \s+ ['"])
+        (?P<mod>\w+)\.(?P<view_type>views|views_dashboard)\.(?P<view_name>\w+)(?P<after>['"])
         """, re_flags)
 
 special_views = {
@@ -102,7 +102,7 @@ def url_replacer(match):
         if view_name in special_views:
             if view_name != 'terms_and_conditions' or (view_name == 'terms_and_conditions' and matches['mod'] in mangled_tnc):
                 view_name = special_views[view_name]
-        repl = u"{before}{namespace}:{name}'".format(before=matches['before'], namespace=namespace, name=view_name)
+        repl = u"{before}{namespace}:{name}{after}".format(namespace=namespace, name=view_name,  **matches)
         message(u"replaced: {0} -> {1}".format(match.group(0), repl))
         return repl
     else:
