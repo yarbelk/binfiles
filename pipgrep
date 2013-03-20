@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
+import pip
+import sys
+import re
+
+installed = pip.get_installed_distributions()
+if len(sys.argv) != 2:
+    print """usage: pipgrep [-h] package_name
+
+    check if a package is installed and what version it is - like pip freeze |
+    grep <package name>
+
+    positional arguments:
+          package_name  package name
+
+          optional arguments:
+                -h, --help    show this help message and exit"""
+    sys.exit(1)
+
+name = sys.argv[1]
+_name_re = re.compile(name, re.I | re.U)
+
+for package in installed:
+    if _name_re.search(package.project_name):
+        print package
+        break
