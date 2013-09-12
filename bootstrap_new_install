@@ -29,6 +29,9 @@ apt-get install skype chromium-browser -y
 # LibreOffice
 sudo apt-get install libreoffice libreoffice-gtk -y
 
+# Dropbox
+sudo apt-get install dropbox -y
+
 # steam
 apt-get install steam -y
 
@@ -38,11 +41,24 @@ apt-get install spotify-client -y
 # rtorrent
 apt-get install vlc rtorrent -y
 
+# lastpass
+
+mkdir $HOME/Downloads/lplinux
+cd $HOME/Downloads/lplinux
+wget https://lastpass.com/lplinux.tar.bz2
+tar xjf lplinux.tar.bz2
+sudo $HOME/Downloads/lplinux/install_lastpass.sh
+
 # build/install vim
 
 sudo apt-get build-dep vim
 
-cd dev
+if [ ! -d $HOME/dev ]
+then
+    mkdir $HOME/dev
+fi
+cd $HOME/dev
+
 hg clone https://vim.googlecode.com/hg vim && cd vim && \
     ./configure --enable-multibyte --with-tlib=ncurses \
     --enable-pythoninterp --enable-rubyinterp --with-features=huge && \
