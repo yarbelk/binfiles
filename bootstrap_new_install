@@ -14,6 +14,7 @@ apt-get install zsh tmux -y
 apt-get install libx11-dev libxt-dev ctags zsh -y
 apt-get install gdebi-core -y
 
+
 # random languages
 
 apt-get install python-dev python-setuputils ruby-dev ruby-rvm -y
@@ -41,13 +42,19 @@ apt-get install spotify-client -y
 # rtorrent
 apt-get install vlc rtorrent -y
 
+# Pip/python
+
+pip install --upgrade setuptools pip
+pip install ipython ipdb
+pip install virtualenv virtualenvwrapper
+
 # lastpass
 
-mkdir $HOME/Downloads/lplinux
-cd $HOME/Downloads/lplinux
+mkdir Downloads/lplinux
+cd Downloads/lplinux
 wget https://lastpass.com/lplinux.tar.bz2
 tar xjf lplinux.tar.bz2
-sudo $HOME/Downloads/lplinux/install_lastpass.sh
+Downloads/lplinux/install_lastpass.sh
 
 # build/install vim
 
